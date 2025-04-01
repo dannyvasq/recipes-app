@@ -25,6 +25,8 @@ login_manager.init_app(app)
 login_manager.login_view = "login"
 
 
+# Load user function for Flask_Login
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -79,13 +81,6 @@ class RecipeForm(FlaskForm):
     submit = SubmitField("Add Recipe")
 
 
-# Load user function for Flask_Login
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-
 # Route to home page
 
 @app.route('/')
@@ -102,26 +97,17 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user and  bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
-                return redirect(url_for('dashboard'))
+                return redirect(url_for('show_recipes'))
     return render_template('login.html', form=form)
-
-
-# Route to dashboard
-
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    recipes = Recipe.query.filter_by(author=current_user).all()
-    return render_template('dashboard.html', name=current_user.username, recipes=recipes)
 
 
 # Route to logout
 
-@app.route('/logout', methods=['GET','POST'])
+@app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('login'))
+    return redirect(url_for('home'))
 
 
 # Route to register a new user
@@ -143,9 +129,10 @@ def register():
 # Route to show all recipes
 
 @app.route('/recipes')
+@login_required
 def show_recipes():
-    recipes = Recipe.query.all()
-    return render_template('recipes.html', recipes=recipes)
+    recipes = Recipe.query.filter_by(author=current_user).all()
+    return render_template('recipes.html', name=current_user.username, recipes=recipes)
 
 
 # Route to add a new recipe
