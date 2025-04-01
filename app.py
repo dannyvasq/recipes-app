@@ -5,7 +5,7 @@ from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, TextAreaField, SubmitField
 from wtforms.validators import InputRequired, Length, ValidationError
 from flask_bcrypt import Bcrypt
 from datetime import datetime
@@ -31,7 +31,7 @@ def load_user(user_id):
 
 # Define User model
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), nullable=False, unique=True)
     password = db.Column(db.String(200), nullable=False)
@@ -69,6 +69,16 @@ class Recipe(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
+# Define RecipeForm class
+
+class RecipeForm(FlaskForm):
+    title = StringField(validators=[InputRequired(), Length(min=1, max=80)], render_kw={"placeholder": "Title"})
+    description = TextAreaField(validators=[InputRequired()], render_kw={"placeholder": "Description"})
+    ingredients = TextAreaField(validators=[InputRequired()], render_kw={"placeholder": "Ingredients"})
+    instructions = TextAreaField(validators=[InputRequired()], render_kw={"placeholder": "Instructions"})
+    submit = SubmitField("Add Recipe")
+
+
 # Load user function for Flask_Login
 
 @login_manager.user_loader
@@ -76,35 +86,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-# Route to show all recipes
-
-@app.route('/')
-@app.route('/recipes')
-def show_recipes():
-    recipes = Recipe.query.all()
-    return render_template('recipes.html', recipes=recipes)
-
-
-# Route to add a new recipe
-
-@app.route('/recipe/new', methods=['GET', 'POST'])
-@login_required
-def new_recipe():
-    form = RecipeForm()
-    if form.validate_on_submit():
-        recipe = Recipe(
-            title=form.title.data,
-            description=form.description.data,
-            ingredients=form.ingredients.data,
-            instructions=form.instructions.data,
-            author=current_user
-        )
-        db.session.add(recipe)
-        db.session.commit()
-        flash('Recipe added successfully!', 'success')
-        return redirect(url_for('show_recipes'))
-    return render_template('new_recipe.html', form=form)
-
+# Route to home page
 
 @app.route('/')
 def home():
@@ -118,8 +100,7 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
-        if user:
-            if bcrypt.check_password_hash(user.password, form.password.data):
+        if user and  bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
                 return redirect(url_for('dashboard'))
     return render_template('login.html', form=form)
@@ -127,9 +108,11 @@ def login():
 
 # Route to dashboard
 
-@app.route('/dashboard', methods=['GET','POST'])
+@app.route('/dashboard')
+@login_required
 def dashboard():
-    return render_template('dashboard.html')
+    recipes = Recipe.query.filter_by(author=current_user).all()
+    return render_template('dashboard.html', name=current_user.username, recipes=recipes)
 
 
 # Route to logout
@@ -157,9 +140,42 @@ def register():
     return render_template('register.html', form=form)
 
 
+# Route to show all recipes
+
+@app.route('/recipes')
+def show_recipes():
+    recipes = Recipe.query.all()
+    return render_template('recipes.html', recipes=recipes)
+
+
+# Route to add a new recipe
+
+@app.route('/recipe/new', methods=['GET', 'POST'])
+@login_required
+def new_recipe():
+    form = RecipeForm()
+    if form.validate_on_submit():
+        try:
+            recipe = Recipe(
+                title=form.title.data,
+                description=form.description.data,
+                ingredients=form.ingredients.data,
+                instructions=form.instructions.data,
+                author=current_user
+            )
+            db.session.add(recipe)
+            db.session.commit()
+            flash('Recipe added successfully!', 'success')
+            return redirect(url_for('show_recipes'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding recipe: {str(e)}', 'danger')
+    return render_template('new_recipe.html', form=form)
+
+
 # Route to show recipe details
 
-@app.route('/recipe/<int:id>')
+@app.route('/recipes/<int:id>')
 def recipe_details(id):
     recipe = Recipe.query.get_or_404(id)
     return render_template('recipe_details.html', recipe=recipe)
@@ -178,9 +194,6 @@ def delete_recipe(id):
     db.session.commit()
     flash('Recipe deleted successfully!', 'success')
     return redirect(url_for('show_recipes'))
-
-
-
 
 
 # Run the Flask app

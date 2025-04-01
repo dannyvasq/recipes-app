@@ -3,19 +3,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recipes</title>
 </head>
 <body>
     <h1>All Recipes</h1>
-    <ul>
+    <table>
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+        </tr>
         {% for recipe in recipes %}
-            <li>
-                <a href="{{ url_for('recipe_details', id=recipe.id) }}">{{ recipe.title }}</a>
-                <p>{{ recipe.description }}</p>
-            </li>
+        <tr>
+            <td>{{ recipe.title }}</td>
+            <td>{{ recipe.description }}</td>
+        </tr>
         {% endfor %}
-    </ul>
-    <a href="{{ url_for('new_recipe') }}">Add New Recipe</a>
+    </table>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('new_recipe') }}">Add New Recipe</a></li>
+            <li><a href="{{ url_for('logout') }}">Press Here for Logout</a></li>
+        </ul>
+    </nav>
+
 </body>
 </html>
 
