@@ -25,7 +25,7 @@
 </head>
 <body>
     <h1>Welcome, {{ name }}!</h1>
-    <h2>Your Saves Recipes</h2>
+    <h2>Your Saved Recipes</h2>
     <table>
         <tr>
             <th>Title</th>
@@ -33,7 +33,7 @@
         </tr>
         {% for recipe in recipes %}
         <tr>
-            <td>{{ recipe.title }}</td>
+            <td><a href="{{ url_for('recipe_details', id=recipe.id) }}">{{ recipe.title }}</a></td>
             <td>{{ recipe.description }}</td>
         </tr>
         {% endfor %}
