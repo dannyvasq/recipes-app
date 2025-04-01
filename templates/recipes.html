@@ -1,0 +1,21 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recipes</title>
+</head>
+<body>
+    <h1>All Recipes</h1>
+    <ul>
+        {% for recipe in recipes %}
+            <li>
+                <a href="{{ url_for('recipe_details', id=recipe.id) }}">{{ recipe.title }}</a>
+                <p>{{ recipe.description }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('new_recipe') }}">Add New Recipe</a>
+</body>
+</html>
+
