@@ -1,2 +1,2 @@
 # recipes-app
-One to many relationship between user and their recipies
+One to many relationship between users and their recipies.
