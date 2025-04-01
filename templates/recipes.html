@@ -30,11 +30,17 @@
         <tr>
             <th>Title</th>
             <th>Description</th>
+            <th>Actions</th>
         </tr>
         {% for recipe in recipes %}
         <tr>
             <td><a href="{{ url_for('recipe_details', id=recipe.id) }}">{{ recipe.title }}</a></td>
             <td>{{ recipe.description }}</td>
+            <td>
+                <form action="{{ url_for('delete_recipe', id=recipe.id) }}" method="POST" style="display:inline;">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
         </tr>
         {% endfor %}
     </table>
