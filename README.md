@@ -13,7 +13,7 @@ STEP 5: Press enter. Git will clone the repository into your specified directory
 
 STEP 6: Install the required packages to run the application:
         pip3 install flask flask_sqlalchemy flask_login flask_bcrypt 
-        pip3 install flask_wtf wtforms email_validator
+                     flask_wtf wtforms email_validator
 
 STEP 7: Run the app.py file:
         python3 app.py
